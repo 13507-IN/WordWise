@@ -27,7 +27,7 @@ Prerequisites: Node.js 20.9 or later, npm, and Docker Compose or a PostgreSQL 16
    docker compose up -d postgres
    ```
 
-   The default development connection is `postgresql://postgres:postgres@localhost:5432/linguacamp?schema=public`. Change both `.env` and the compose password if you change the local database credentials.
+   The default development connection is `postgresql://postgres:postgres@localhost:5432/linguacamp?schema=public`; use it for both `DATABASE_URL` and `DIRECT_URL`. For Neon, use its pooled connection string for `DATABASE_URL` and its direct connection string for `DIRECT_URL`. Change both `.env` URLs and the compose password if you change the local database credentials.
 
 4. Apply the checked-in migration and load original demo content:
 
@@ -51,6 +51,7 @@ Prerequisites: Node.js 20.9 or later, npm, and Docker Compose or a PostgreSQL 16
 Required:
 
 - `DATABASE_URL` — PostgreSQL connection string.
+- `DIRECT_URL` — direct PostgreSQL connection used for Prisma migrations; optional when it is the same as `DATABASE_URL`.
 - `AUTH_SECRET` — long, random Auth.js secret.
 
 Optional:
