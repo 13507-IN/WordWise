@@ -88,7 +88,7 @@ The dashboard's readiness number is a heuristic based on task completion and rec
 ## Production checklist
 
 - Use managed PostgreSQL with backups and TLS; run `npm run db:deploy` as a release step.
-- Set a production-grade `AUTH_SECRET`, `AUTH_URL`, `DATABASE_URL`, and trusted AI/email provider credentials.
+- Set a production-grade `AUTH_SECRET`, `AUTH_URL`, `DATABASE_URL`, `DIRECT_URL`, and trusted AI/email provider credentials.
 - Configure provider rate limits, monitoring, error reporting, retention and deletion workflows.
 - Review examination formats and timings with each official authority; keep source links and format version metadata current.
 - Complete privacy, terms, accessibility, security and payment-provider reviews before charging users.
