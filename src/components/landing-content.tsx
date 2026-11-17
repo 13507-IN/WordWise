@@ -1,5 +1,6 @@
 import { ArrowDownRight, ArrowRight, BookOpenCheck, CalendarClock, ChartNoAxesColumnIncreasing, ClipboardCheck, Headphones, Languages, Mic2, PenLine, Sparkles, Timer } from "lucide-react";
 import Link from "next/link";
+import { HeroMotionStage } from "@/components/hero-motion-stage";
 import { PlanPreview } from "@/components/plan-preview";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -24,15 +25,39 @@ export function LandingContent({ exams, featuredQuestion }: {
     <>
       <SiteHeader />
       <main>
-        <section className="hero site-shell">
-          <h1>Pass your next <span>exam.</span></h1>
-          <div className="hero-bottom">
-            <p className="hero-copy">
-              Exam-focused preparation for JLPT, DELE and DALF, paced around your target level, exam date and daily study time.
-            </p>
-            <div className="hero-actions">
-              <Link className="button" href="/register">Start preparing <ArrowRight aria-hidden="true" size={17} /></Link>
-              <Link className="text-link" href="#programs">Explore exam programs <ArrowDownRight aria-hidden="true" /></Link>
+        <section className="hero-band">
+          <div className="hero site-shell">
+            <div className="hero-top">
+              <h1 className="hero-headline">
+                <span className="hero-line">Pass your next</span>{" "}
+                <span className="hero-accent-word">
+                  exam.
+                  <svg
+                    className="hero-accent-underline"
+                    viewBox="0 0 220 14"
+                    fill="none"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M3 9.5C58 3.2 152 2.4 217 8.2"
+                      stroke="currentColor"
+                      strokeWidth="3.2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+              </h1>
+              <HeroMotionStage />
+            </div>
+            <div className="hero-bottom">
+              <p className="hero-copy">
+                Exam-focused preparation for JLPT, DELE and DALF, paced around your target level, exam date and daily study time.
+              </p>
+              <div className="hero-actions">
+                <Link className="button" href="/register">Start preparing <ArrowRight aria-hidden="true" size={17} /></Link>
+                <Link className="text-link" href="#programs">Explore exam programs <ArrowDownRight aria-hidden="true" /></Link>
+              </div>
             </div>
           </div>
         </section>
