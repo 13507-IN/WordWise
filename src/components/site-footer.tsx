@@ -22,7 +22,7 @@ export function SiteFooter() {
           <span>Original practice material. Exam structures linked to their official authorities.</span>
           <Link href="/privacy">Privacy</Link>
         </div>
-        <p className="footer-brand" aria-hidden="true">LinguaCamp</p>
+        <p className="footer-brand" aria-hidden="true" data-motion="fade-up">LinguaCamp</p>
       </div>
     </footer>
   );

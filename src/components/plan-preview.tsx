@@ -3,6 +3,7 @@
 import { ArrowRight, CalendarDays, Clock3 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
+import { PreviewCadenceGraphic } from "@/components/landing-motion-graphics";
 
 type PreviewLevel = {
   id: string;
@@ -89,7 +90,7 @@ export function PlanPreview({ exams }: { exams: PreviewExam[] }) {
 
   return (
     <div className="preview-section site-shell">
-      <div>
+      <div data-motion="fade-up">
         <h2 className="section-title">A calendar built around your date</h2>
         <p className="section-intro">
           Choose a certification, a target level and the day you plan to sit it. Preview the shape of your first study week.
@@ -127,7 +128,7 @@ export function PlanPreview({ exams }: { exams: PreviewExam[] }) {
         </form>
         {error && <p className="form-error" role="alert">{error}</p>}
       </div>
-      <div className="plan-preview" aria-live="polite">
+      <div className="plan-preview" aria-live="polite" data-motion="fade-up" data-delay="120">
         <div className="panel-head">
           <div>
             <h3>{tasks.length ? `Your ${activeLevel?.code} study week` : "Your first week takes shape here"}</h3>
@@ -139,20 +140,27 @@ export function PlanPreview({ exams }: { exams: PreviewExam[] }) {
         </div>
         {tasks.length ? (
           <>
-            {tasks.map((task) => (
-              <div className="preview-day" key={task.day}>
+            {tasks.map((task, index) => (
+              <div
+                className="preview-day preview-day-enter"
+                style={{ animationDelay: `${index * 65}ms` }}
+                key={`${examDate}-${task.day}`}
+              >
                 <strong>{task.day}</strong>
                 <p>{task.title}<span>{task.detail}</span></p>
               </div>
             ))}
-            <Link className="text-link" href={`/register?${registerQuery}`}>
+            <Link className="text-link preview-save-link" href={`/register?${registerQuery}`}>
               Save this plan <ArrowRight aria-hidden="true" />
             </Link>
           </>
         ) : (
-          <p className="empty-state">
-            Your exam sections determine the practice mix. Pick a date to see the first five study sessions.
-          </p>
+          <div className="preview-idle">
+            <PreviewCadenceGraphic />
+            <p className="empty-state">
+              Your exam sections determine the practice mix. Pick a date to see the first five study sessions.
+            </p>
+          </div>
         )}
       </div>
     </div>

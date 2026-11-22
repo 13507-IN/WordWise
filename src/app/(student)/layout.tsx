@@ -19,6 +19,7 @@ export default async function StudentLayout({ children }: Readonly<{ children: R
     <AppShell
       name={session.user.name?.trim() || "Student"}
       email={session.user.email ?? ""}
+      role={session.user.role}
     >
       {children}
     </AppShell>

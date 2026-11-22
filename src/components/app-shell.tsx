@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   Settings2,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -25,7 +26,7 @@ const navigation = [
   { href: "/library", label: "Content library", icon: LibraryBig },
 ] as const;
 
-function Navigation({ close }: { close?: () => void }) {
+function Navigation({ close, role }: { close?: () => void; role?: string }) {
   const pathname = usePathname();
   return (
     <nav aria-label="Student navigation">
@@ -44,13 +45,23 @@ function Navigation({ close }: { close?: () => void }) {
         <Settings2 aria-hidden="true" />
         <span>Study preferences</span>
       </Link>
+      {role === "ADMIN" && (
+        <>
+          <p className="nav-label">Administration</p>
+          <Link className="app-nav-link" href={"/admin" as any} onClick={close}>
+            <ShieldCheck aria-hidden="true" />
+            <span>Admin portal</span>
+          </Link>
+        </>
+      )}
     </nav>
   );
 }
 
-export function AppShell({ name, email, children }: {
+export function AppShell({ name, email, role, children }: {
   name: string;
   email: string;
+  role?: string;
   children: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,7 +72,7 @@ export function AppShell({ name, email, children }: {
     <div className="app-frame">
       <aside className="app-sidebar">
         <Brand />
-        <Navigation />
+        <Navigation role={role} />
         <div className="app-sidebar-bottom">
           <div className="app-user">
             <strong>{name}</strong><br />
@@ -94,7 +105,7 @@ export function AppShell({ name, email, children }: {
         </header>
         {menuOpen && (
           <div className="mobile-menu-sheet">
-            <Navigation close={() => setMenuOpen(false)} />
+            <Navigation close={() => setMenuOpen(false)} role={role} />
             <div className="app-user">{name}<br /><span>{email}</span></div>
           </div>
         )}
