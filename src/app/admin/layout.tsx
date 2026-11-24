@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { auth } from "@/auth";
-import { AdminAccessGuard } from "@/components/admin/admin-access-guard";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 export const dynamic = "force-dynamic";
@@ -11,17 +10,10 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }>) {
   const session = await auth();
-  if (!session?.user?.id) {
-    redirect("/login?callbackUrl=/admin");
-  }
 
-  if (session.user.role !== "ADMIN") {
-    return (
-      <AdminAccessGuard
-        email={session.user.email ?? "unknown@user"}
-        currentRole={session.user.role || "STUDENT"}
-      />
-    );
+  // If not authenticated or not flagged as ADMIN in the database, return 404 (hidden)
+  if (!session?.user?.id || session.user.role !== "ADMIN") {
+    notFound();
   }
 
   return (

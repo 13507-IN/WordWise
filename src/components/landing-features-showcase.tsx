@@ -1,31 +1,28 @@
 "use client";
 
 import {
-  Activity,
   ArrowRight,
   BookOpenCheck,
   Bot,
   CalendarRange,
   CheckCircle2,
   Clock,
-  ExternalLink,
-  GraduationCap,
   Layers,
-  ShieldCheck,
   Sparkles,
   Timer,
+  TrendingUp,
   Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-type FeatureCategory = "all" | "learning" | "ai-sim" | "admin";
+type FeatureCategory = "all" | "learning" | "ai-sim" | "analytics";
 
 const CATEGORIES: { id: FeatureCategory; label: string }[] = [
   { id: "all", label: "All Capabilities" },
   { id: "learning", label: "Learning & Practice" },
   { id: "ai-sim", label: "AI & Simulations" },
-  { id: "admin", label: "Educator & Admin" },
+  { id: "analytics", label: "Readiness & Diagnostics" },
 ];
 
 export function LandingFeaturesShowcase() {
@@ -43,7 +40,7 @@ export function LandingFeaturesShowcase() {
           Engineered for first-attempt certification success.
         </h2>
         <p className="section-intro">
-          From AI-driven conversation partners and official timed mock simulations to adaptive backward-scheduled study plans and enterprise admin telemetry — every feature is purpose-built to get you certified.
+          From AI-driven conversation partners and official timed mock simulations to adaptive backward-scheduled study plans and evidence-backed readiness diagnostics — every feature is purpose-built to get you certified.
         </p>
 
         {/* Filter Navigation */}
@@ -342,56 +339,63 @@ export function LandingFeaturesShowcase() {
           </article>
         )}
 
-        {/* 6. Institutional Admin & RBAC Suite */}
-        {(activeTab === "all" || activeTab === "admin") && (
+        {/* 6. Evidence-Based Readiness Diagnostics */}
+        {(activeTab === "all" || activeTab === "analytics") && (
           <article
-            className="feature-card feature-card-admin"
+            className="feature-card feature-card-analytics"
             data-motion="fade-up"
             data-delay="290"
             data-motion-spotlight
           >
             <div className="feature-card-header">
-              <div className="feature-icon-box feature-icon-slate">
-                <ShieldCheck size={20} />
+              <div className="feature-icon-box feature-icon-cyan">
+                <TrendingUp size={20} />
               </div>
-              <span className="feature-category-pill">Educator &amp; Admin Suite</span>
+              <span className="feature-category-pill">Readiness Intelligence</span>
             </div>
 
             <div className="feature-card-body">
-              <h3>Institution-Grade Admin Dashboard</h3>
+              <h3>Evidence-Based Readiness Tracking</h3>
               <p>
-                Full platform administration with role-based access control (Admin, Instructor, Student), custom question authoring, candidate attempt logs, and real-time pass-readiness analytics.
+                Eliminate test-day anxiety with transparent skill tracking. Get weighted accuracy across every official exam section and an honest readiness index that factors in unattempted areas.
               </p>
 
-              {/* Micro visual: Admin HUD */}
-              <div className="feature-micro-widget admin-widget">
-                <div className="admin-hud-bar">
-                  <div className="admin-status-indicator">
-                    <span className="admin-beacon" />
-                    <span>Live Telemetry Active</span>
+              {/* Micro visual: Readiness HUD */}
+              <div className="feature-micro-widget analytics-widget">
+                <div className="analytics-hud-top">
+                  <div>
+                    <span className="analytics-score-big">78%</span>
+                    <span className="analytics-score-sub">Calculated Readiness</span>
                   </div>
-                  <span className="admin-role-chip">ADMIN · Full Access</span>
+                  <span className="analytics-status-pill text-emerald">Passing Trajectory</span>
                 </div>
-                <div className="admin-stats-mini-grid">
-                  <div className="admin-stat-mini">
-                    <strong>13 Levels</strong>
-                    <span>JLPT · DELE · DALF</span>
-                  </div>
-                  <div className="admin-stat-mini">
-                    <strong>Atomic RBAC</strong>
-                    <span>Instant role elevation</span>
-                  </div>
+                <div className="analytics-bar-track">
+                  <div className="analytics-bar-fill" style={{ width: "78%" }} />
                 </div>
-                <div className="admin-log-snippet">
-                  <Activity size={13} className="text-cyan" />
-                  <span>Latest: Candidate #418 completed N2 Mock (86% accuracy)</span>
+                <div className="analytics-skills-list">
+                  <div className="analytics-skill-item">
+                    <span>Vocab &amp; Kanji</span>
+                    <strong>85%</strong>
+                  </div>
+                  <div className="analytics-skill-item">
+                    <span>Grammar Patterns</span>
+                    <strong>74%</strong>
+                  </div>
+                  <div className="analytics-skill-item">
+                    <span>Reading (Dokkai)</span>
+                    <strong>68%</strong>
+                  </div>
+                  <div className="analytics-skill-item">
+                    <span>Unattempted (Honest)</span>
+                    <strong className="text-muted">0%</strong>
+                  </div>
                 </div>
               </div>
             </div>
 
             <div className="feature-card-footer">
-              <Link href="/admin" className="feature-action-link">
-                <span>Open Admin Portal</span>
+              <Link href="/register" className="feature-action-link">
+                <span>View Readiness Methodology</span>
                 <ArrowRight size={15} />
               </Link>
             </div>

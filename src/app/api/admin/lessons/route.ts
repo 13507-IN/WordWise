@@ -17,7 +17,7 @@ const createLessonSchema = z.object({
 export async function GET() {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   try {
@@ -52,7 +52,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   let body: unknown;

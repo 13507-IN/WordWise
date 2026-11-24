@@ -5299,7 +5299,7 @@ button {
 .feature-card-plan::after { background: linear-gradient(90deg, #d97706, #fbbf24); }
 .feature-card-bank::after { background: linear-gradient(90deg, #059669, #34d399); }
 .feature-card-curriculum::after { background: linear-gradient(90deg, #302b63, #7455e8); }
-.feature-card-admin::after { background: linear-gradient(90deg, #334155, #64748b); }
+.feature-card-analytics::after { background: linear-gradient(90deg, #0284c7, #35c6d8); }
 
 .feature-card:hover {
   transform: translateY(-5px);
@@ -5667,76 +5667,76 @@ button {
   font-weight: 600;
 }
 
-/* Admin Widget */
-.admin-hud-bar {
+/* Analytics Widget */
+.analytics-hud-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.admin-status-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #059669;
-}
-
-.admin-beacon {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 8px #10b981;
-}
-
-.admin-role-chip {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 0.18rem 0.55rem;
-  border-radius: 999px;
-  background: #302b63;
-  color: #ffffff;
-  letter-spacing: 0.04em;
-}
-
-.admin-stats-mini-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-}
-
-.admin-stat-mini {
-  background: #ffffff;
-  border: 1px solid #e3e6f0;
-  padding: 0.45rem 0.65rem;
-  border-radius: 8px;
-  text-align: center;
-}
-
-.admin-stat-mini strong {
-  display: block;
-  font-size: 0.84rem;
+.analytics-score-big {
+  font-size: 1.4rem;
+  font-weight: 800;
   color: var(--ink);
+  letter-spacing: -0.04em;
+  line-height: 1;
 }
 
-.admin-stat-mini span {
+.analytics-score-sub {
   display: block;
   font-size: 0.68rem;
   color: var(--muted);
+  text-transform: uppercase;
+  margin-top: 0.15rem;
 }
 
-.admin-log-snippet {
+.analytics-status-pill {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+}
+
+.analytics-bar-track {
+  height: 6px;
+  background: #e2e5ed;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 0.2rem 0;
+}
+
+.analytics-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #35c6d8, #059669);
+  border-radius: 999px;
+}
+
+.analytics-skills-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-top: 0.2rem;
+}
+
+.analytics-skill-item {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.72rem;
-  color: #475569;
+  justify-content: space-between;
   background: #ffffff;
-  padding: 0.45rem 0.65rem;
-  border-radius: 6px;
   border: 1px solid #e3e6f0;
+  padding: 0.35rem 0.55rem;
+  border-radius: 6px;
+  font-size: 0.74rem;
+}
+
+.analytics-skill-item span {
+  color: var(--muted);
+}
+
+.analytics-skill-item strong {
+  color: var(--ink);
 }
 
 /* Card Footer */

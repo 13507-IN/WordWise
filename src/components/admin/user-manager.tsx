@@ -1,9 +1,7 @@
 "use client";
 
 import {
-  AlertCircle,
   CalendarDays,
-  Check,
   GraduationCap,
   Search,
   Shield,
@@ -11,8 +9,8 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
+
 const USER_ROLES = ["STUDENT", "INSTRUCTOR", "ADMIN"] as const;
-type UserRole = (typeof USER_ROLES)[number];
 
 type UserRecord = {
   id: string;
@@ -44,11 +42,9 @@ type UserRecord = {
 };
 
 export function UserManager({ initialUsers }: { initialUsers: UserRecord[] }) {
-  const [users, setUsers] = useState<UserRecord[]>(initialUsers);
+  const [users] = useState<UserRecord[]>(initialUsers);
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("ALL");
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const filtered = users.filter((u) => {
     if (roleFilter !== "ALL" && u.role !== roleFilter) return false;
@@ -61,56 +57,24 @@ export function UserManager({ initialUsers }: { initialUsers: UserRecord[] }) {
     return true;
   });
 
-  async function handleRoleChange(userId: string, newRole: UserRole) {
-    setUpdatingId(userId);
-    setStatusMessage(null);
-    try {
-      const res = await fetch("/api/admin/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, role: newRole }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update role");
-
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-      );
-      setStatusMessage(`Updated role for ${data.email} to ${newRole}`);
-      setTimeout(() => setStatusMessage(null), 4000);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update role");
-    } finally {
-      setUpdatingId(null);
-    }
-  }
-
   return (
     <div>
       <div className="app-title-row">
         <div>
-          <h1>User Directory &amp; Role-Based Access</h1>
+          <h1>User Directory &amp; Access Roster</h1>
           <p>
-            Audit registered accounts, view target certification goals, and assign administrator or instructor roles.
+            Audit registered accounts, view target certification goals, and track candidate mock activity. User roles are managed exclusively via direct database administration.
           </p>
         </div>
       </div>
 
-      {statusMessage && (
-        <div className="admin-toast-notice">
-          <Check size={16} />
-          <span>{statusMessage}</span>
-        </div>
-      )}
-
-      {/* Filter toolbar */}
-      <div className="admin-filter-bar panel">
+      {/* Filters Strip */}
+      <div className="admin-filter-bar">
         <div className="admin-search-wrap">
-          <Search size={16} className="admin-search-icon" />
+          <Search className="admin-search-icon" size={16} />
           <input
             type="search"
-            placeholder="Search by name or email address..."
+            placeholder="Search by student name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="admin-search-input"
@@ -118,7 +82,9 @@ export function UserManager({ initialUsers }: { initialUsers: UserRecord[] }) {
         </div>
 
         <div className="admin-filter-group">
+          <label htmlFor="user-role-filter" className="sr-only">Filter by role</label>
           <select
+            id="user-role-filter"
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
             className="admin-select"
@@ -147,7 +113,7 @@ export function UserManager({ initialUsers }: { initialUsers: UserRecord[] }) {
                 <th>Target Exam</th>
                 <th>Study Schedule</th>
                 <th>Activity</th>
-                <th>Assigned Role</th>
+                <th>Database Role</th>
               </tr>
             </thead>
             <tbody>
@@ -216,18 +182,14 @@ export function UserManager({ initialUsers }: { initialUsers: UserRecord[] }) {
 
                       <td>
                         <div className="admin-role-cell">
-                          <select
-                            className={`admin-role-select ${u.role.toLowerCase()}`}
-                            value={u.role}
-                            disabled={updatingId === u.id}
-                            onChange={(e) =>
-                              handleRoleChange(u.id, e.target.value as UserRole)
-                            }
-                          >
-                            <option value="STUDENT">STUDENT</option>
-                            <option value="INSTRUCTOR">INSTRUCTOR</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
+                          <span className={`admin-role-badge ${u.role.toLowerCase()}`}>
+                            {u.role === "ADMIN" ? (
+                              <ShieldCheck size={12} style={{ display: "inline", marginRight: "4px" }} />
+                            ) : (
+                              <User size={12} style={{ display: "inline", marginRight: "4px" }} />
+                            )}
+                            {u.role}
+                          </span>
                         </div>
                       </td>
                     </tr>

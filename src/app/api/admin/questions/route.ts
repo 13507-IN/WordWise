@@ -19,7 +19,7 @@ const createQuestionSchema = z.object({
 export async function GET(request: Request) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   const { searchParams } = new URL(request.url);
@@ -76,7 +76,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   let body: unknown;
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
 
   const { searchParams } = new URL(request.url);
