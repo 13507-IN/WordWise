@@ -10,6 +10,7 @@ import {
   StoriesWaveGraphic,
 } from "@/components/landing-motion-graphics";
 import { PlanPreview } from "@/components/plan-preview";
+import { LandingFeaturesShowcase } from "@/components/landing-features-showcase";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 
@@ -110,6 +111,10 @@ export function LandingContent({ exams, featuredQuestion }: {
               ))}
             </div>
           </div>
+        </section>
+
+        <section className="features-showcase-section section" id="features">
+          <LandingFeaturesShowcase />
         </section>
 
         <section className="how-section section" id="method">

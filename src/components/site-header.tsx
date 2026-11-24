@@ -7,6 +7,7 @@ export function SiteHeader() {
       <Brand />
       <nav className="site-nav" aria-label="Main navigation">
         <Link href="/#programs">Exams</Link>
+        <Link href="/#features">Features</Link>
         <Link href="/#method">How it works</Link>
         <Link href="/#pricing">Plans</Link>
         <Link className="text-link" href="/login">Sign in</Link>
