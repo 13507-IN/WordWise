@@ -150,6 +150,101 @@ export async function POST(request: Request) {
   }
 }
 
+const updateQuestionSchema = z.object({
+  id: z.string().min(1),
+  examLevelId: z.string().min(1).optional(),
+  skill: z.enum(SkillType).optional(),
+  prompt: z.string().trim().min(3).max(2000),
+  context: z.string().trim().max(3000).optional().nullable(),
+  options: z.array(z.string().trim().min(1).max(500)).min(2).max(6),
+  answerIndex: z.number().int().min(0),
+  explanation: z.string().trim().min(3).max(3000),
+  difficulty: z.number().int().min(1).max(5).default(1),
+  isOfficial: z.boolean().default(false),
+});
+
+export async function PUT(request: Request) {
+  const session = await auth();
+  if (session?.user?.role !== "ADMIN") {
+    return NextResponse.json({ error: "Not Found" }, { status: 404 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = updateQuestionSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid question data" },
+      { status: 400 }
+    );
+  }
+
+  const data = parsed.data;
+  if (data.answerIndex >= data.options.length) {
+    return NextResponse.json(
+      { error: "Correct answer index must be within options range" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const existing = await prisma.question.findUnique({
+      where: { id: data.id },
+      include: { options: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+
+    // Atomic update of question and its options
+    const updated = await prisma.$transaction(async (tx) => {
+      // Delete old options
+      await tx.questionOption.deleteMany({
+        where: { questionId: data.id },
+      });
+
+      // Update question and create new options
+      return tx.question.update({
+        where: { id: data.id },
+        data: {
+          ...(data.examLevelId ? { examLevelId: data.examLevelId } : {}),
+          ...(data.skill ? { skill: data.skill } : {}),
+          prompt: {
+            text: data.prompt,
+            ...(data.context ? { context: data.context } : {}),
+          },
+          explanation: data.explanation,
+          difficulty: data.difficulty,
+          isOfficial: data.isOfficial,
+          options: {
+            create: data.options.map((opt, idx) => ({
+              label: String.fromCharCode(65 + idx),
+              content: { text: opt },
+              sortOrder: idx + 1,
+              isCorrect: idx === data.answerIndex,
+            })),
+          },
+        },
+        include: {
+          examLevel: { include: { exam: true } },
+          options: { orderBy: { sortOrder: "asc" } },
+        },
+      });
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Failed to update question:", error);
+    return NextResponse.json({ error: "Failed to update question" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") {
