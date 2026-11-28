@@ -89,10 +89,19 @@ export function AppShell({ name, email, role, children }: {
           <div className="app-mobile-brand">
             <Brand />
           </div>
-          <nav aria-label="Account navigation">
+          <div className="app-topbar-crumb">
             <span>{currentPage?.label ?? "Study preferences"}</span>
-            <button type="button" onClick={() => signOut({ redirectTo: "/" })}>Sign out</button>
-          </nav>
+          </div>
+          <div className="app-topbar-actions">
+            <button
+              type="button"
+              className="app-signout-btn"
+              onClick={() => signOut({ redirectTo: "/" })}
+            >
+              <LogOut size={14} aria-hidden="true" />
+              <span>Sign out</span>
+            </button>
+          </div>
           <button
             className="mobile-menu-button"
             type="button"

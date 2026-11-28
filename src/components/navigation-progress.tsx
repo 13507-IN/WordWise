@@ -14,18 +14,25 @@ export function NavigationProgressBar() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const pillTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevUrlRef = useRef<string | null>(null);
 
   // Complete loading when pathname or searchParams change
   useEffect(() => {
-    if (isLoading) {
-      setProgress(100);
-      const doneTimeout = setTimeout(() => {
-        setIsLoading(false);
-        setProgress(0);
-        setShowPill(false);
-      }, 250);
-      return () => clearTimeout(doneTimeout);
+    const currentUrl = `${pathname}?${searchParams.toString()}`;
+    if (prevUrlRef.current !== null && prevUrlRef.current !== currentUrl) {
+      const finishTimer = setTimeout(() => {
+        setProgress(100);
+        const hideTimer = setTimeout(() => {
+          setIsLoading(false);
+          setProgress(0);
+          setShowPill(false);
+        }, 220);
+        return () => clearTimeout(hideTimer);
+      }, 0);
+      prevUrlRef.current = currentUrl;
+      return () => clearTimeout(finishTimer);
     }
+    prevUrlRef.current = currentUrl;
   }, [pathname, searchParams]);
 
   // Clean up timers on unmount
