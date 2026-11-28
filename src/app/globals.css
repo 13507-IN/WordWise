@@ -1721,12 +1721,14 @@ button {
 .app-frame {
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
   background: #f2f3f8;
 }
 
 .app-workspace {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-mobile-brand,
@@ -1736,11 +1738,30 @@ button {
 }
 
 .app-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  max-height: 100svh;
+  align-self: start;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   padding: 1.5rem 1rem;
   background: #f2f3f8;
+  border-right: 1px solid var(--line);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(14, 56, 53, 0.15) transparent;
+  z-index: 20;
+}
+
+.app-sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(14, 56, 53, 0.15);
+  border-radius: 999px;
 }
 
 .app-sidebar nav {
@@ -1800,13 +1821,18 @@ button {
 }
 
 .app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
   min-height: 52px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding: 0 1.5rem;
-  background: #f2f3f8;
+  background: rgba(242, 243, 248, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line);
 }
 
@@ -4601,6 +4627,16 @@ button {
 .admin-sidebar {
   background: #141731;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.admin-frame .app-topbar {
+  background: rgba(20, 23, 49, 0.94);
+  border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
 .admin-sidebar .brand {
