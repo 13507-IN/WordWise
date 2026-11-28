@@ -3527,11 +3527,45 @@ button {
   font-size: 0.8rem;
 }
 
+.tutor-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.voice-tone-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.voice-tone-select-wrap:hover {
+  border-color: #0d9488;
+}
+
+.voice-tone-select {
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+}
+
 .tutor-reset {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  margin-left: auto;
   padding: 0.4rem 0.55rem;
   border: 1px solid var(--line);
   border-radius: 6px;

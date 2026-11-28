@@ -1,6 +1,9 @@
 /**
  * Speech Synthesis (Voice Output) and Speech Recognition (Voice Input)
  * Optimized for Language Exam Preparation (JLPT Japanese, DELE Spanish, DALF French).
+ *
+ * Configured with soft, warm, neural voice selection and pitched-down acoustic profiles
+ * so audio pronunciation is pleasant, soothing, and comfortable for extended study.
  */
 
 export type SupportedLanguage = "ja-JP" | "es-ES" | "fr-FR" | "en-US";
@@ -43,6 +46,72 @@ export const SUPPORTED_LANGS: Record<string, SpeechLangConfig> = {
     samplePhrase: "Hello! How can I help you?",
   },
 };
+
+export type VoiceProfileKey = "soft" | "warm" | "natural";
+
+export interface VoiceProfile {
+  key: VoiceProfileKey;
+  name: string;
+  description: string;
+  pitch: number;
+  rate: number;
+  volume: number;
+}
+
+/**
+ * Acoustic presets designed to eliminate ear-piercing treble and robotic buzz.
+ * "soft" is the default: pitched down slightly (0.92) for a gentle, calming tone.
+ */
+export const VOICE_PROFILES: Record<VoiceProfileKey, VoiceProfile> = {
+  soft: {
+    key: "soft",
+    name: "Soft & Calming",
+    description: "Pitched down for a gentle, soothing tone that is comfortable on the ears",
+    pitch: 0.92,
+    rate: 0.88,
+    volume: 0.90,
+  },
+  warm: {
+    key: "warm",
+    name: "Warm & Deep",
+    description: "Lower pitch with relaxed pacing and warm resonance",
+    pitch: 0.85,
+    rate: 0.86,
+    volume: 0.90,
+  },
+  natural: {
+    key: "natural",
+    name: "Natural Studio",
+    description: "Standard balanced native articulation",
+    pitch: 0.96,
+    rate: 0.90,
+    volume: 0.94,
+  },
+};
+
+const STORAGE_KEY_VOICE_PROFILE = "linguacamp_voice_profile";
+
+export function getSavedVoiceProfile(): VoiceProfileKey {
+  if (typeof window === "undefined") return "soft";
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_VOICE_PROFILE);
+    if (saved && (saved === "soft" || saved === "warm" || saved === "natural")) {
+      return saved as VoiceProfileKey;
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return "soft";
+}
+
+export function saveVoiceProfile(profile: VoiceProfileKey): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(STORAGE_KEY_VOICE_PROFILE, profile);
+  } catch {
+    // Ignore storage errors
+  }
+}
 
 // Japanese character range: Hiragana, Katakana, Kanji, Halfwidth Katakana
 const JAPANESE_CHAR_REGEX = /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uff66-\uff9f]/;
@@ -87,6 +156,27 @@ export function resolveLanguageCode(examCodeOrName?: string, textSnippet?: strin
 let activeUtterance: SpeechSynthesisUtterance | null = null;
 let activeStopCallback: (() => void) | null = null;
 
+// Voice pre-warming cache to prevent empty getVoices() on first client interaction
+let cachedVoices: SpeechSynthesisVoice[] = [];
+
+function loadVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    return [];
+  }
+  const voices = window.speechSynthesis.getVoices();
+  if (voices.length) {
+    cachedVoices = voices;
+  }
+  return cachedVoices.length ? cachedVoices : voices;
+}
+
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    loadVoices();
+  };
+}
+
 /**
  * Check if the current browser environment supports SpeechSynthesis (TTS).
  */
@@ -95,51 +185,145 @@ export function isSpeechSynthesisSupported(): boolean {
 }
 
 /**
- * Select the most authentic native voice for a target language.
+ * Scores a voice based on softness, acoustic warmth, and modern neural quality.
+ * Prevents harsh, metallic Windows SAPI5 Desktop voices from hurting the user's ears.
  */
-function selectBestVoice(voices: SpeechSynthesisVoice[], targetLang: SupportedLanguage): SpeechSynthesisVoice | null {
+function scoreVoice(voice: SpeechSynthesisVoice, targetLang: SupportedLanguage): number {
+  const name = voice.name.toLowerCase();
+  const lang = voice.lang.replace("_", "-").toLowerCase();
+  const target = targetLang.toLowerCase();
+  const targetPrefix = targetLang.split("-")[0].toLowerCase();
+
+  let score = 0;
+
+  // Language match weight
+  if (lang === target) {
+    score += 60;
+  } else if (lang.startsWith(targetPrefix)) {
+    score += 35;
+  } else {
+    return -1000; // Incompatible language
+  }
+
+  // --- HARSH VOICE FILTERS & PENALTIES ---
+  // Legacy Windows SAPI5 desktop voices are notoriously harsh, tinny, and robotic
+  if (name.includes("desktop")) score -= 300;
+  if (name.includes("espeak")) score -= 350;
+  if (name.includes("sapi")) score -= 250;
+  if (name.includes("david")) score -= 80;
+  if (name.includes("zira")) score -= 80;
+  if (name.includes("mark")) score -= 80;
+  if (name.includes("george")) score -= 60;
+  if (name.includes("hazel")) score -= 60;
+
+  // --- SOFT & NATURAL NEURAL VOICES (HIGHEST PRIORITY) ---
+  // Microsoft Azure / Edge Online Natural voices are studio quality and very soft
+  if (name.includes("online (natural)") || name.includes("natural")) {
+    score += 180;
+  }
+
+  // Apple & Google High-Definition Neural / Enhanced voices
+  if (name.includes("enhanced") || name.includes("premium")) {
+    score += 140;
+  }
+  if (name.includes("neural")) {
+    score += 130;
+  }
+  if (name.includes("google")) {
+    score += 100;
+  }
+
+  // Soft, warm, gentle native speakers
+  if (targetPrefix === "ja") {
+    if (name.includes("nanami")) score += 90; // Nanami: very soft, gentle Japanese female voice
+    if (name.includes("keita")) score += 75; // Keita: calm, warm Japanese male voice
+    if (name.includes("aoi")) score += 70;
+    if (name.includes("shiori")) score += 70;
+    if (name.includes("kyoko")) score += 65;
+    if (name.includes("otoya")) score += 65;
+    if (name.includes("ayumi")) score += 30;
+  } else if (targetPrefix === "es") {
+    if (name.includes("elvira")) score += 90; // Elvira: soft, warm Spanish female voice
+    if (name.includes("paloma")) score += 80;
+    if (name.includes("alvaro")) score += 75; // Alvaro: calm, friendly Spanish male voice
+    if (name.includes("monica")) score += 65;
+    if (name.includes("paulina") || name.includes("paulino")) score += 65;
+    if (name.includes("sofia")) score += 65;
+    if (name.includes("jorge")) score += 55;
+  } else if (targetPrefix === "fr") {
+    if (name.includes("denise")) score += 90; // Denise: soft, soothing French voice
+    if (name.includes("henri")) score += 75; // Henri: articulate, calm French male voice
+    if (name.includes("celeste")) score += 70;
+    if (name.includes("julie")) score += 65;
+    if (name.includes("thomas")) score += 65;
+    if (name.includes("amelie")) score += 65;
+  } else {
+    if (name.includes("jenny")) score += 90; // Jenny: warm, conversational English voice
+    if (name.includes("aria")) score += 80;
+    if (name.includes("guy")) score += 75;
+    if (name.includes("samantha")) score += 65;
+    if (name.includes("sonia")) score += 60;
+  }
+
+  return score;
+}
+
+/**
+ * Select the softest, most pleasant voice for a target language.
+ */
+function selectBestVoice(
+  voices: SpeechSynthesisVoice[],
+  targetLang: SupportedLanguage,
+  preferredName?: string,
+): SpeechSynthesisVoice | null {
   if (!voices.length) return null;
 
-  const langPrefix = targetLang.split("-")[0].toLowerCase();
-
-  // 1. Exact match (e.g. ja-JP, es-ES)
-  const exactMatches = voices.filter((v) => v.lang.replace("_", "-").toLowerCase() === targetLang.toLowerCase());
-  if (exactMatches.length) {
-    // Prefer natural/local voices or known high quality voice names
-    const preferred = exactMatches.find(
-      (v) =>
-        v.localService ||
-        v.name.includes("Natural") ||
-        v.name.includes("Google") ||
-        v.name.includes("Premium") ||
-        v.name.includes("Enhanced") ||
-        v.name.includes("Kyoko") ||
-        v.name.includes("Monica") ||
-        v.name.includes("Thomas"),
-    );
-    return preferred || exactMatches[0];
+  if (preferredName) {
+    const namedVoice = voices.find((v) => v.name.toLowerCase() === preferredName.toLowerCase());
+    if (namedVoice) return namedVoice;
   }
 
-  // 2. Prefix match (e.g. ja, es, fr)
-  const prefixMatches = voices.filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith(langPrefix));
-  if (prefixMatches.length) {
-    return prefixMatches[0];
+  const prefix = targetLang.split("-")[0].toLowerCase();
+  const matchingVoices = voices.filter((v) =>
+    v.lang.replace("_", "-").toLowerCase().startsWith(prefix),
+  );
+
+  if (!matchingVoices.length) {
+    return voices[0] || null;
   }
 
-  return null;
+  // Sort descending by softness and acoustic quality score
+  matchingVoices.sort((a, b) => scoreVoice(b, targetLang) - scoreVoice(a, targetLang));
+
+  return matchingVoices[0];
+}
+
+/**
+ * Returns available voices for the target language, ranked from softest/highest quality down.
+ */
+export function getAvailableVoicesForLang(targetLang: SupportedLanguage): SpeechSynthesisVoice[] {
+  if (!isSpeechSynthesisSupported()) return [];
+  const voices = loadVoices();
+  const prefix = targetLang.split("-")[0].toLowerCase();
+  return voices
+    .filter((v) => v.lang.replace("_", "-").toLowerCase().startsWith(prefix))
+    .sort((a, b) => scoreVoice(b, targetLang) - scoreVoice(a, targetLang));
 }
 
 export interface SpeakOptions {
   lang?: SupportedLanguage | string;
-  rate?: number; // Default 0.90 for learner-friendly clarity
-  pitch?: number; // Default 1.0
+  rate?: number;
+  pitch?: number;
+  volume?: number;
+  profile?: VoiceProfileKey;
+  voiceName?: string;
   onStart?: () => void;
   onEnd?: () => void;
   onError?: (error: unknown) => void;
 }
 
 /**
- * Read text aloud in authentic native pronunciation.
+ * Read text aloud in authentic native pronunciation with a soft, pitched-down tone.
  * Returns a cancel function to stop playback.
  */
 export function speakText(text: string, options: SpeakOptions = {}): () => void {
@@ -161,13 +345,18 @@ export function speakText(text: string, options: SpeakOptions = {}): () => void 
   const utterance = new SpeechSynthesisUtterance(cleanText);
   activeUtterance = utterance;
 
-  utterance.lang = lang;
-  utterance.rate = options.rate ?? 0.90; // Slightly paced for language learners
-  utterance.pitch = options.pitch ?? 1.0;
+  // Apply voice profile (defaults to "soft": pitched down 0.92, rate 0.88, volume 0.90)
+  const profileKey = options.profile || getSavedVoiceProfile();
+  const profile = VOICE_PROFILES[profileKey] || VOICE_PROFILES.soft;
 
-  // Attempt voice selection
-  const voices = window.speechSynthesis.getVoices();
-  const bestVoice = selectBestVoice(voices, lang);
+  utterance.lang = lang;
+  utterance.rate = options.rate ?? profile.rate;
+  utterance.pitch = options.pitch ?? profile.pitch; // Pitched down for gentle, pleasant listening
+  utterance.volume = options.volume ?? profile.volume; // Soft volume preventing ear fatigue
+
+  // Attempt voice selection from pre-warmed cache
+  const voices = loadVoices();
+  const bestVoice = selectBestVoice(voices, lang, options.voiceName);
   if (bestVoice) {
     utterance.voice = bestVoice;
   }
@@ -192,7 +381,6 @@ export function speakText(text: string, options: SpeakOptions = {}): () => void 
   };
 
   utterance.onerror = (event) => {
-    // If canceled manually, don't trigger error
     if (event.error === "canceled" || event.error === "interrupted") {
       finish(options.onEnd);
     } else {

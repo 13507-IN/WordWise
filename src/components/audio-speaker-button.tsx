@@ -46,7 +46,7 @@ export function AudioSpeakerButton({
 
   const defaultTitle = isPlaying
     ? "Stop audio"
-    : `Listen to authentic ${langName} pronunciation`;
+    : `Listen to soft, authentic ${langName} pronunciation`;
 
   function handleClick(e: MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
@@ -61,7 +61,6 @@ export function AudioSpeakerButton({
     setIsPlaying(true);
     speakText(text, {
       lang: targetLang,
-      rate: 0.88, // Learner-friendly articulation speed
       onStart: () => setIsPlaying(true),
       onEnd: () => setIsPlaying(false),
       onError: () => setIsPlaying(false),

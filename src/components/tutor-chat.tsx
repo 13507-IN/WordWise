@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowUp, Bot, Mic, MicOff, RotateCcw, Sparkles } from "lucide-react";
+import { ArrowUp, Bot, Mic, MicOff, RotateCcw, Sparkles, Volume2 } from "lucide-react";
 import { AudioSpeakerButton } from "@/components/audio-speaker-button";
 import {
+  getSavedVoiceProfile,
   isSpeechRecognitionSupported,
   resolveLanguageCode,
+  saveVoiceProfile,
+  speakText,
   startSpeechRecognition,
   type ActiveRecognition,
   type SupportedLanguage,
+  type VoiceProfileKey,
 } from "@/lib/speech";
 
 type Message = { role: "user" | "assistant"; content: string };
@@ -32,121 +36,135 @@ const QUICK_STARTERS: Record<string, { label: string; text: string }[]> = {
 };
 
 export function TutorChat({
-  examName,
+  examName = "Japanese Language Proficiency Test",
   examCode,
-  level,
+  level = "N5",
+  defaultLang,
 }: {
-  examName: string;
+  examName?: string;
   examCode?: string;
-  level: string;
+  level?: string;
+  defaultLang?: string;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-
-  // Speech Recognition state
-  const targetExamLang = resolveLanguageCode(examCode || examName);
-  const [voiceLang, setVoiceLang] = useState<SupportedLanguage>(targetExamLang);
   const [isListening, setIsListening] = useState(false);
-  const [interimText, setInterimText] = useState("");
-  const activeRecognitionRef = useRef<ActiveRecognition | null>(null);
-  const baseInputRef = useRef("");
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [interimSpeech, setInterimSpeech] = useState("");
+  const [voiceTone, setVoiceTone] = useState<VoiceProfileKey>(() => getSavedVoiceProfile());
 
+  const recognitionRef = useRef<ActiveRecognition | null>(null);
+  const targetExamLang = resolveLanguageCode(examCode || defaultLang || examName);
   const speechRecSupported = isSpeechRecognitionSupported();
 
-  // Clean up recognition on unmount
+  // Clean up any ongoing speech recognition on unmount
   useEffect(() => {
     return () => {
-      if (activeRecognitionRef.current) {
-        activeRecognitionRef.current.abort();
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+        recognitionRef.current = null;
       }
     };
   }, []);
 
-  function stopListening() {
-    if (activeRecognitionRef.current) {
-      activeRecognitionRef.current.stop();
-      activeRecognitionRef.current = null;
-    }
-    setIsListening(false);
-    setInterimText("");
+  function handleToneChange(tone: VoiceProfileKey) {
+    setVoiceTone(tone);
+    saveVoiceProfile(tone);
+    const sample =
+      targetExamLang === "ja-JP"
+        ? "こんにちは"
+        : targetExamLang === "es-ES"
+        ? "¡Hola!"
+        : targetExamLang === "fr-FR"
+        ? "Bonjour"
+        : "Hello";
+    speakText(sample, { lang: targetExamLang, profile: tone });
   }
 
   function toggleListening() {
+    if (!speechRecSupported) {
+      setError("Speech recognition is not supported in this browser. Please use Google Chrome, Microsoft Edge, or Apple Safari.");
+      return;
+    }
+
     if (isListening) {
       stopListening();
       return;
     }
 
-    if (!speechRecSupported) {
-      setError("Speech recognition is not supported in this browser. Please use Chrome, Edge, or Safari.");
-      return;
-    }
-
     setError("");
-    baseInputRef.current = input;
-    setIsListening(true);
-    setInterimText("");
+    setInterimSpeech("");
 
-    const rec = startSpeechRecognition({
-      lang: voiceLang,
+    const active = startSpeechRecognition({
+      lang: targetExamLang,
       onStart: () => {
         setIsListening(true);
       },
       onResult: (transcript, isFinal) => {
         if (isFinal) {
-          const prefix = baseInputRef.current ? `${baseInputRef.current} ` : "";
-          const nextVal = `${prefix}${transcript}`.trim();
-          setInput(nextVal);
-          baseInputRef.current = nextVal;
-          setInterimText("");
+          setInput((prev) => {
+            const trimmed = prev.trim();
+            return trimmed ? `${trimmed} ${transcript}` : transcript;
+          });
+          setInterimSpeech("");
         } else {
-          setInterimText(transcript);
+          setInterimSpeech(transcript);
         }
       },
-      onError: (errMsg) => {
-        setError(errMsg);
+      onError: (errMessage) => {
+        setError(errMessage);
         setIsListening(false);
-        setInterimText("");
       },
       onEnd: () => {
         setIsListening(false);
-        setInterimText("");
-        activeRecognitionRef.current = null;
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-        }
+        setInterimSpeech("");
       },
     });
 
-    activeRecognitionRef.current = rec;
+    if (active) {
+      recognitionRef.current = active;
+    }
   }
 
-  async function send(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (isListening) {
-      stopListening();
+  function stopListening() {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
     }
+    setIsListening(false);
+    setInterimSpeech("");
+  }
 
-    const content = input.trim();
-    if (!content || busy) return;
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (isListening) stopListening();
 
-    const nextMessages = [...messages, { role: "user" as const, content }];
+    const cleanInput = input.trim();
+    if (!cleanInput || busy) return;
+
+    setError("");
+    const nextMessages: Message[] = [...messages, { role: "user", content: cleanInput }];
     setMessages(nextMessages);
     setInput("");
     setBusy(true);
-    setError("");
 
     try {
       const response = await fetch("/api/tutor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages.slice(-10) }),
+        body: JSON.stringify({
+          messages: nextMessages,
+          exam: `${examName} ${level}`,
+          language: targetExamLang,
+        }),
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error ?? "The tutor could not respond.");
+
+      if (!response.ok) {
+        throw new Error("Could not reach your AI Tutor right now.");
+      }
+
+      const result = (await response.json()) as { reply: string };
       setMessages([...nextMessages, { role: "assistant", content: result.reply }]);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "The tutor could not respond.");
@@ -176,18 +194,33 @@ export function TutorChat({
             Audio Pronunciation & Speech Recognition enabled ({langBadgeText})
           </span>
         </div>
-        <button
-          className="tutor-reset"
-          type="button"
-          disabled={!messages.length || busy}
-          onClick={() => {
-            if (isListening) stopListening();
-            setMessages([]);
-            setError("");
-          }}
-        >
-          <RotateCcw aria-hidden="true" size={15} /> Clear
-        </button>
+        <div className="tutor-head-actions">
+          <label className="voice-tone-select-wrap" title="Adjust voice tone & pitch">
+            <Volume2 size={13} aria-hidden="true" />
+            <select
+              aria-label="Voice tone preset"
+              className="voice-tone-select"
+              value={voiceTone}
+              onChange={(e) => handleToneChange(e.target.value as VoiceProfileKey)}
+            >
+              <option value="soft">Soft & Calming (Pitched down)</option>
+              <option value="warm">Warm & Deep (Low pitch)</option>
+              <option value="natural">Natural Studio (Balanced)</option>
+            </select>
+          </label>
+          <button
+            className="tutor-reset"
+            type="button"
+            disabled={!messages.length || busy}
+            onClick={() => {
+              if (isListening) stopListening();
+              setMessages([]);
+              setError("");
+            }}
+          >
+            <RotateCcw aria-hidden="true" size={15} /> Clear
+          </button>
+        </div>
       </div>
 
       <div className="tutor-messages" aria-live="polite">
@@ -202,7 +235,7 @@ export function TutorChat({
                   size="xs"
                   variant="subtle"
                   label={message.role === "assistant" ? "Read aloud" : "Pronounce"}
-                  title="Listen to native voice pronunciation"
+                  title="Listen to soft, native voice pronunciation"
                 />
               </div>
               <p className="tutor-msg-content">{message.content}</p>
@@ -232,109 +265,73 @@ export function TutorChat({
             </div>
           </div>
         )}
+
+        {interimSpeech && (
+          <div className="tutor-interim-speech">
+            <span className="listening-pulse" />
+            <span>{interimSpeech}</span>
+          </div>
+        )}
+
         {busy && (
-          <div className="tutor-message assistant">
-            <span>Tutor</span>
-            <p>Thinking through your question in {langBadgeText}…</p>
+          <div className="tutor-thinking">
+            <span className="dot dot-1" />
+            <span className="dot dot-2" />
+            <span className="dot dot-3" />
+            <span>Thinking…</span>
           </div>
         )}
       </div>
 
-      {error && <p className="form-error tutor-error" role="alert">{error}</p>}
-
-      {/* Voice Input Active Banner */}
-      {isListening && (
-        <div className="tutor-listening-bar" role="status">
-          <div className="listening-pulse-dot" />
-          <div className="listening-info">
-            <strong>Listening in {voiceLang === "ja-JP" ? "Japanese 🇯🇵" : voiceLang === "es-ES" ? "Spanish 🇪🇸" : voiceLang === "fr-FR" ? "French 🇫🇷" : "English 🇺🇸"}…</strong>
-            <span>{interimText ? `“${interimText}”` : "Speak clearly into your microphone"}</span>
-          </div>
-          <button
-            type="button"
-            className="listening-stop-btn"
-            onClick={stopListening}
-          >
-            <MicOff size={14} /> Stop
-          </button>
+      {error && (
+        <div className="tutor-error-bar" role="alert">
+          <span>{error}</span>
         </div>
       )}
 
-      {/* Compose Form */}
-      <form className="tutor-compose" onSubmit={send}>
-        <div className="tutor-compose-top">
-          <label className="sr-only" htmlFor="tutor-message">Ask your tutor</label>
-          <div className="tutor-lang-toggle">
-            <span className="lang-toggle-label">Voice input language:</span>
+      <form className="tutor-input-box" onSubmit={handleSubmit}>
+        <div className="tutor-input-row">
+          <input
+            type="text"
+            className="tutor-input"
+            placeholder={
+              isListening
+                ? "Listening… speak in Japanese or English now"
+                : `Ask a question about ${examName} or type words to hear pronunciation…`
+            }
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={busy}
+          />
+
+          {speechRecSupported && (
             <button
               type="button"
-              className={`lang-chip${voiceLang === targetExamLang ? " active" : ""}`}
-              onClick={() => {
-                if (isListening) stopListening();
-                setVoiceLang(targetExamLang);
-              }}
+              className={`tutor-mic-btn${isListening ? " is-listening" : ""}`}
+              onClick={toggleListening}
+              disabled={busy}
+              title={isListening ? "Stop listening" : "Click to speak with microphone"}
+              aria-label={isListening ? "Stop microphone" : "Start microphone"}
             >
-              {targetExamLang === "ja-JP" ? "🇯🇵 日本語 (Japanese)" : targetExamLang === "es-ES" ? "🇪🇸 Español (Spanish)" : "🇫🇷 Français (French)"}
+              {isListening ? <MicOff size={18} /> : <Mic size={18} />}
             </button>
-            <button
-              type="button"
-              className={`lang-chip${voiceLang === "en-US" ? " active" : ""}`}
-              onClick={() => {
-                if (isListening) stopListening();
-                setVoiceLang("en-US");
-              }}
-            >
-              🇺🇸 English
-            </button>
-          </div>
+          )}
+
+          <button
+            type="submit"
+            className="tutor-send-btn"
+            disabled={!input.trim() || busy}
+            title="Send question to tutor"
+            aria-label="Send question"
+          >
+            <ArrowUp size={18} />
+          </button>
         </div>
 
-        <div className="tutor-input-box">
-          <textarea
-            ref={textareaRef}
-            id="tutor-message"
-            maxLength={1800}
-            rows={2}
-            placeholder={`Ask a question or speak in ${targetExamLang === "ja-JP" ? "Japanese" : targetExamLang === "es-ES" ? "Spanish" : "your target language"}…`}
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-          />
-          <div className="tutor-input-actions">
-            <button
-              type="button"
-              className={`tutor-mic-btn${isListening ? " is-recording" : ""}`}
-              onClick={toggleListening}
-              title={
-                isListening
-                  ? "Click to stop recording"
-                  : `Speak in ${voiceLang === "ja-JP" ? "Japanese" : voiceLang === "es-ES" ? "Spanish" : voiceLang === "fr-FR" ? "French" : "English"}`
-              }
-              aria-label={isListening ? "Stop listening" : "Start voice input"}
-            >
-              {isListening ? (
-                <>
-                  <span className="mic-pulse-ring" />
-                  <MicOff size={16} />
-                </>
-              ) : (
-                <Mic size={16} />
-              )}
-              <span className="mic-btn-text">{isListening ? "Listening…" : "Voice input"}</span>
-            </button>
-            <button
-              className="button"
-              type="submit"
-              disabled={busy || !input.trim()}
-              aria-label="Send message"
-            >
-              <ArrowUp aria-hidden="true" size={17} /> Send
-            </button>
-          </div>
-        </div>
+        <p className="tutor-footnote">
+          Authentic native voice synthesis & recognition. Audio is pitched down for gentle, non-fatiguing listening.
+        </p>
       </form>
-      <p className="tutor-disclaimer">
-        Authentic speech synthesis & recognition powered by native Web Speech API. Audio pronunciation works for words, sentences, and exam questions.
-      </p>
     </section>
   );
 }
