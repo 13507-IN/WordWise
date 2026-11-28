@@ -3,16 +3,19 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+/**
+ * Single, high-performance top progress bar.
+ * Fires instantly on any internal link click and finishes smoothly on route change.
+ * Exactly one non-intrusive loading indicator, zero screen blocking, zero extra spinners.
+ */
 export function NavigationProgressBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [showPill, setShowPill] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const pillTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safetyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevUrlRef = useRef<string | null>(null);
 
@@ -20,17 +23,16 @@ export function NavigationProgressBar() {
   useEffect(() => {
     const currentUrl = `${pathname}?${searchParams.toString()}`;
     if (prevUrlRef.current !== null && prevUrlRef.current !== currentUrl) {
-      const finishTimer = setTimeout(() => {
-        setProgress(100);
-        const hideTimer = setTimeout(() => {
-          setIsLoading(false);
-          setProgress(0);
-          setShowPill(false);
-        }, 220);
-        return () => clearTimeout(hideTimer);
-      }, 0);
+      if (timerRef.current) clearInterval(timerRef.current);
+      setProgress(100);
+
+      const hideTimer = setTimeout(() => {
+        setIsLoading(false);
+        setProgress(0);
+      }, 200);
+
       prevUrlRef.current = currentUrl;
-      return () => clearTimeout(finishTimer);
+      return () => clearTimeout(hideTimer);
     }
     prevUrlRef.current = currentUrl;
   }, [pathname, searchParams]);
@@ -39,40 +41,31 @@ export function NavigationProgressBar() {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
-      if (pillTimerRef.current) clearTimeout(pillTimerRef.current);
       if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     };
   }, []);
 
   function startLoading() {
     setIsLoading(true);
-    setProgress(15);
+    setProgress(28); // Immediate jump on click for instant visual feedback
 
-    // Show floating pill if navigation takes more than 120ms
-    if (pillTimerRef.current) clearTimeout(pillTimerRef.current);
-    pillTimerRef.current = setTimeout(() => {
-      setShowPill(true);
-    }, 120);
-
-    // Incrementally step progress
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
       setProgress((prev) => {
-        if (prev < 60) return prev + 15;
-        if (prev < 85) return prev + 5;
-        if (prev < 95) return prev + 1;
+        if (prev < 65) return prev + 18;
+        if (prev < 88) return prev + 6;
+        if (prev < 96) return prev + 1;
         return prev;
       });
-    }, 180);
+    }, 140);
 
-    // Safety timeout to reset after 10s if route never changes
+    // Safety timeout to reset after 8s if route never resolves
     if (safetyTimeoutRef.current) clearTimeout(safetyTimeoutRef.current);
     safetyTimeoutRef.current = setTimeout(() => {
       setIsLoading(false);
       setProgress(0);
-      setShowPill(false);
       if (timerRef.current) clearInterval(timerRef.current);
-    }, 10000);
+    }, 8000);
   }
 
   // Intercept all internal navigation link clicks
@@ -115,10 +108,10 @@ export function NavigationProgressBar() {
           if (dest.hash) return;
         }
 
-        // Internal navigation starting
+        // Internal navigation starting - show top progress bar immediately
         startLoading();
       } catch {
-        // invalid URL, ignore
+        // Invalid URL, ignore
       }
     }
 
@@ -138,27 +131,16 @@ export function NavigationProgressBar() {
   if (!isLoading && progress === 0) return null;
 
   return (
-    <>
-      {/* Top Gradient Progress Bar */}
-      <div
-        className="nav-progress-bar"
-        style={{
-          width: `${progress}%`,
-          opacity: isLoading ? 1 : 0,
-        }}
-        role="progressbar"
-        aria-valuenow={progress}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      />
-
-      {/* Floating Centered Transition Indicator */}
-      {showPill && (
-        <div className="nav-progress-spinner-pill" role="status" aria-live="polite">
-          <span className="nav-inline-spinner" aria-hidden="true" />
-          <span>Loading page...</span>
-        </div>
-      )}
-    </>
+    <div
+      className="nav-progress-bar"
+      style={{
+        width: `${progress}%`,
+        opacity: isLoading ? 1 : 0,
+      }}
+      role="progressbar"
+      aria-valuenow={progress}
+      aria-valuemin={0}
+      aria-valuemax={100}
+    />
   );
 }

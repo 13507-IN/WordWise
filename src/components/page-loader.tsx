@@ -19,11 +19,7 @@ export function PageLoader({
 
         <div className="page-loader-text">
           <h3>{title}</h3>
-          <p>{subtitle}</p>
-        </div>
-
-        <div className="page-loader-track">
-          <div className="page-loader-fill" />
+          {subtitle && <p>{subtitle}</p>}
         </div>
       </div>
     </div>
