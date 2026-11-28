@@ -1,0 +1,44 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "LinguaCamp - Language Exam Preparation",
+    short_name: "LinguaCamp",
+    description:
+      "Master Japanese (JLPT), Spanish (DELE), and French (DALF) with exam-aligned practice, authentic voice pronunciation, and AI tutoring.",
+    start_url: "/",
+    scope: "/",
+    display: "standalone",
+    background_color: "#fbfbfa",
+    theme_color: "#0e3835",
+    orientation: "portrait",
+    categories: ["education", "productivity"],
+    lang: "en",
+    icons: [
+      {
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/icons/icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+      {
+        src: "/icons/icon.svg",
+        sizes: "any",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+    ],
+  };
+}
