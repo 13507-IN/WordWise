@@ -3,7 +3,8 @@
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+import { startNavigationProgress } from "@/components/navigation-progress";
 
 type Mode = "login" | "register" | "forgot" | "reset";
 
@@ -21,12 +22,16 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  const [redirectMessage, setRedirectMessage] = useState("");
+  const redirectingRef = useRef(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     setMessage("");
     setBusy(true);
+
     try {
       if (mode === "register") {
         const response = await fetch("/api/auth/register", {
@@ -38,6 +43,12 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
         if (!response.ok) throw new Error(result.error ?? "Account creation failed.");
         const login = await signIn("credentials", { email, password, redirect: false });
         if (login?.error) throw new Error("Your account was created, but sign-in failed. Please sign in.");
+
+        redirectingRef.current = true;
+        setIsRedirecting(true);
+        setRedirectMessage("Account ready! Setting up your study roadmap…");
+        startNavigationProgress();
+
         const query = new URLSearchParams({
           ...(initialValues?.examLevelId ? { examLevelId: initialValues.examLevelId } : {}),
           ...(initialValues?.examDate ? { examDate: initialValues.examDate } : {}),
@@ -51,6 +62,12 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
       if (mode === "login") {
         const result = await signIn("credentials", { email, password, redirect: false });
         if (result?.error) throw new Error("Email or password is incorrect.");
+
+        redirectingRef.current = true;
+        setIsRedirecting(true);
+        setRedirectMessage("Signing in… Opening your dashboard");
+        startNavigationProgress();
+
         router.replace("/dashboard");
         router.refresh();
         return;
@@ -77,11 +94,20 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error ?? "Could not update your password.");
       setMessage("Your password has been updated. You can now sign in.");
-      window.setTimeout(() => router.replace("/login"), 1000);
+
+      redirectingRef.current = true;
+      setIsRedirecting(true);
+      setRedirectMessage("Password updated! Taking you to sign in…");
+      startNavigationProgress();
+      window.setTimeout(() => router.replace("/login"), 800);
     } catch (caught) {
+      redirectingRef.current = false;
+      setIsRedirecting(false);
       setError(caught instanceof Error ? caught.message : "Something went wrong. Try again.");
     } finally {
-      setBusy(false);
+      if (!redirectingRef.current) {
+        setBusy(false);
+      }
     }
   }
 
@@ -97,22 +123,51 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
         ? "We’ll send a one-time reset link if the account exists."
         : "Use at least 10 characters for your new password.";
 
+  const isFormLocked = busy || isRedirecting;
+
   return (
     <form className="auth-form" onSubmit={handleSubmit}>
       <h2>{title}</h2>
       <p>{intro}</p>
 
+      {isRedirecting && (
+        <div className="auth-redirect-notice" role="status" aria-live="polite">
+          <span className="nav-inline-spinner" />
+          <div>
+            <strong>{redirectMessage}</strong>
+            <p>Connecting your exam preparation roadmap…</p>
+          </div>
+        </div>
+      )}
+
       {isRegister && (
         <div className="auth-field">
           <label htmlFor="name">Name</label>
-          <input id="name" autoComplete="name" required maxLength={80} value={name} onChange={(event) => setName(event.target.value)} />
+          <input
+            id="name"
+            autoComplete="name"
+            required
+            maxLength={80}
+            disabled={isFormLocked}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
         </div>
       )}
 
       {!isReset && (
         <div className="auth-field">
           <label htmlFor="email">Email</label>
-          <input id="email" type="email" autoComplete="email" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} />
+          <input
+            id="email"
+            type="email"
+            autoComplete="email"
+            required
+            maxLength={254}
+            disabled={isFormLocked}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
         </div>
       )}
 
@@ -126,6 +181,7 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
             required
             minLength={isRegister || isReset ? 10 : 1}
             maxLength={128}
+            disabled={isFormLocked}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
@@ -135,26 +191,76 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
       {isReset && (
         <div className="auth-field">
           <label htmlFor="confirm-password">Confirm new password</label>
-          <input id="confirm-password" type="password" autoComplete="new-password" required minLength={10} maxLength={128} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+          <input
+            id="confirm-password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={10}
+            maxLength={128}
+            disabled={isFormLocked}
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+          />
         </div>
       )}
 
       {mode === "login" && (
-        <p className="small-copy"><Link href="/forgot-password">Forgot your password?</Link></p>
+        <p className="small-copy">
+          <Link href="/forgot-password" tabIndex={isFormLocked ? -1 : 0}>
+            Forgot your password?
+          </Link>
+        </p>
       )}
 
       {error && <p className="form-error" role="alert">{error}</p>}
       {message && <p className="form-success" role="status">{message}</p>}
 
-      <button className="button" type="submit" disabled={busy}>
-        {busy ? "Please wait…" : isRegister ? "Create account" : mode === "login" ? "Sign in" : isForgot ? "Send reset link" : "Update password"}
+      <button className="button" type="submit" disabled={isFormLocked}>
+        {isRedirecting ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+            <span className="nav-inline-spinner" />
+            <span>Loading dashboard…</span>
+          </span>
+        ) : busy ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+            <span className="nav-inline-spinner" />
+            <span>Please wait…</span>
+          </span>
+        ) : isRegister ? (
+          "Create account"
+        ) : mode === "login" ? (
+          "Sign in"
+        ) : isForgot ? (
+          "Send reset link"
+        ) : (
+          "Update password"
+        )}
       </button>
 
       {googleEnabled && (mode === "login" || isRegister) && (
         <>
           <div className="auth-divider"><span>or</span></div>
-          <button className="button button-secondary" type="button" disabled={busy} onClick={() => signIn("google", { redirectTo: "/dashboard" })}>
-            Continue with Google
+          <button
+            className="button button-secondary"
+            type="button"
+            disabled={isFormLocked}
+            onClick={() => {
+              redirectingRef.current = true;
+              setIsRedirecting(true);
+              setRedirectMessage("Connecting with Google… Opening your dashboard");
+              startNavigationProgress();
+              signIn("google", { redirectTo: "/dashboard" });
+            }}
+          >
+            {isRedirecting && redirectMessage.includes("Google") ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", justifyContent: "center" }}>
+                <span className="nav-inline-spinner" />
+                <span>Connecting…</span>
+              </span>
+            ) : (
+              "Continue with Google"
+            )}
           </button>
         </>
       )}
@@ -166,7 +272,13 @@ export function AuthForm({ mode, googleEnabled = false, initialValues, resetToke
       {(mode === "login" || isRegister) && (
         <p className="small-copy">
           {isRegister ? "Already registered? " : "New to LinguaCamp? "}
-          <Link href={isRegister ? "/login" : "/register"}>{isRegister ? "Sign in" : "Create an account"}</Link>
+          <Link
+            href={isRegister ? "/login" : "/register"}
+            tabIndex={isFormLocked ? -1 : 0}
+            style={isFormLocked ? { pointerEvents: "none", opacity: 0.6 } : undefined}
+          >
+            {isRegister ? "Sign in" : "Create an account"}
+          </Link>
         </p>
       )}
     </form>

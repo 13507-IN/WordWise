@@ -6686,6 +6686,94 @@ button {
   border-radius: 6px;
 }
 
+/* Inline spinner for buttons, badges, and feedback */
+.nav-inline-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(14, 56, 53, 0.2);
+  border-top-color: #0d9488;
+  animation: spin 0.75s linear infinite;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.button .nav-inline-spinner {
+  border-color: rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+}
+
+/* Auth redirect feedback banner */
+.auth-redirect-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: #ecfdf5;
+  border: 1px solid rgba(13, 148, 136, 0.3);
+  color: #065f46;
+  margin-bottom: 1.25rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.auth-redirect-notice strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.auth-redirect-notice p {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: #047857;
+}
+
+/* Student & Admin Workspace Loading Views */
+.workspace-loading-view {
+  padding: clamp(1.25rem, 2.5vw, 2.25rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.workspace-loading-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.workspace-loading-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid var(--line);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.workspace-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.skeleton-panel {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
 /* ========================================================
    PWA MOBILE INSTALL BANNER
    ======================================================== */

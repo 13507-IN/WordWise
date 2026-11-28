@@ -4,9 +4,28 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 /**
- * Single, high-performance top progress bar.
- * Fires instantly on any internal link click and finishes smoothly on route change.
- * Exactly one non-intrusive loading indicator, zero screen blocking, zero extra spinners.
+ * Triggers the top navigation progress bar programmatically.
+ * Useful for auth redirects, form submissions, and programmatic router.push/replace calls.
+ */
+export function startNavigationProgress() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("navigation-start"));
+  }
+}
+
+/**
+ * Completes the top navigation progress bar programmatically.
+ */
+export function completeNavigationProgress() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("navigation-complete"));
+  }
+}
+
+/**
+ * High-performance top progress bar.
+ * Fires instantly on any internal link click, router navigation, or auth redirect,
+ * and finishes smoothly on route change.
  */
 export function NavigationProgressBar() {
   const pathname = usePathname();
@@ -47,7 +66,7 @@ export function NavigationProgressBar() {
 
   function startLoading() {
     setIsLoading(true);
-    setProgress(28); // Immediate jump on click for instant visual feedback
+    setProgress(28); // Immediate jump on click/navigation for instant visual feedback
 
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => {
@@ -68,7 +87,16 @@ export function NavigationProgressBar() {
     }, 8000);
   }
 
-  // Intercept all internal navigation link clicks
+  function finishLoading() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setProgress(100);
+    setTimeout(() => {
+      setIsLoading(false);
+      setProgress(0);
+    }, 200);
+  }
+
+  // Intercept all internal navigation link clicks, popstate, and programmatic history changes
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       // Ignore right clicks or modified clicks (Ctrl, Cmd, Shift, Alt)
@@ -119,12 +147,60 @@ export function NavigationProgressBar() {
       startLoading();
     }
 
+    function handleCustomStart() {
+      startLoading();
+    }
+
+    function handleCustomComplete() {
+      finishLoading();
+    }
+
     document.addEventListener("click", handleClick, { capture: true });
     window.addEventListener("popstate", handlePopState);
+    window.addEventListener("navigation-start", handleCustomStart);
+    window.addEventListener("navigation-complete", handleCustomComplete);
+
+    // Monkey-patch history to capture programmatic router pushes and replaces
+    const originalPushState = window.history.pushState;
+    const originalReplaceState = window.history.replaceState;
+
+    window.history.pushState = function (...args) {
+      const url = args[2];
+      if (url && typeof url === "string") {
+        try {
+          const nextUrl = new URL(url, window.location.href);
+          if (nextUrl.pathname !== window.location.pathname || nextUrl.search !== window.location.search) {
+            startLoading();
+          }
+        } catch {
+          startLoading();
+        }
+      }
+      return originalPushState.apply(this, args);
+    };
+
+    window.history.replaceState = function (...args) {
+      const url = args[2];
+      if (url && typeof url === "string") {
+        try {
+          const nextUrl = new URL(url, window.location.href);
+          if (nextUrl.pathname !== window.location.pathname || nextUrl.search !== window.location.search) {
+            startLoading();
+          }
+        } catch {
+          startLoading();
+        }
+      }
+      return originalReplaceState.apply(this, args);
+    };
 
     return () => {
       document.removeEventListener("click", handleClick, { capture: true });
       window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("navigation-start", handleCustomStart);
+      window.removeEventListener("navigation-complete", handleCustomComplete);
+      window.history.pushState = originalPushState;
+      window.history.replaceState = originalReplaceState;
     };
   }, []);
 
