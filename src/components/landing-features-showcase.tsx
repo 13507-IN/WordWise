@@ -44,19 +44,21 @@ export function LandingFeaturesShowcase() {
         </p>
 
         {/* Filter Navigation */}
-        <div className="features-tab-strip" role="tablist" aria-label="Feature categories">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === cat.id}
-              className={`features-tab-btn${activeTab === cat.id ? " active" : ""}`}
-              onClick={() => setActiveTab(cat.id)}
-            >
-              {cat.label}
-            </button>
-          ))}
+        <div className="features-tab-strip-wrapper">
+          <div className="features-tab-strip" role="tablist" aria-label="Feature categories">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === cat.id}
+                className={`features-tab-btn${activeTab === cat.id ? " active" : ""}`}
+                onClick={() => setActiveTab(cat.id)}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 

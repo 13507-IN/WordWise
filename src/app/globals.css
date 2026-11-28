@@ -198,12 +198,12 @@ button {
 }
 
 .hero h1 {
-  max-width: 10.5ch;
+  max-width: 15ch;
   margin: 0;
-  font-size: clamp(3.15rem, 7.6vw, 7.8rem);
+  font-size: clamp(3.15rem, 6.8vw, 7.2rem);
   font-weight: 700;
-  letter-spacing: -0.085em;
-  line-height: 0.93;
+  letter-spacing: -0.075em;
+  line-height: 0.96;
   text-wrap: balance;
 }
 
@@ -2427,8 +2427,10 @@ button {
   }
 
   .hero h1 {
-    max-width: 9ch;
-    font-size: clamp(3.15rem, 15vw, 5.4rem);
+    max-width: 100%;
+    font-size: clamp(2.35rem, 9.5vw, 3.8rem);
+    line-height: 1.05;
+    letter-spacing: -0.05em;
   }
 
   .hero-collage-stage {
@@ -5819,7 +5821,7 @@ button {
 }
 
 .features-showcase-header {
-  max-width: 52rem;
+  max-width: min(94%, 66rem);
   margin: 0 auto 3rem;
   text-align: center;
 }
@@ -5855,34 +5857,43 @@ button {
 }
 
 .features-showcase-header .section-title {
-  margin: 0 0 1rem;
-  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  margin: 0 auto 1.15rem;
+  font-size: clamp(2rem, 3.2vw, 3.15rem);
   font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
+  letter-spacing: -0.035em;
+  line-height: 1.16;
   color: var(--ink);
+  max-width: 58rem;
+  text-wrap: balance;
 }
 
 .features-showcase-header .section-intro {
   margin: 0 auto;
-  font-size: 1.1rem;
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.62;
   color: var(--muted);
-  max-width: 44rem;
+  max-width: 48rem;
+  text-wrap: pretty;
 }
 
 /* Category Tab Strip */
+.features-tab-strip-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: 2rem;
+}
+
 .features-tab-strip {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem;
-  margin-top: 2rem;
-  background: rgba(23, 26, 53, 0.06);
+  padding: 0.32rem;
+  background: rgba(23, 26, 53, 0.05);
   border-radius: 999px;
-  border: 1px solid rgba(23, 26, 53, 0.06);
-  flex-wrap: wrap;
-  justify-content: center;
+  border: 1px solid rgba(23, 26, 53, 0.07);
+  flex-wrap: nowrap;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .features-tab-btn {
@@ -5890,12 +5901,13 @@ button {
   background: transparent;
   color: var(--muted);
   font-size: 0.86rem;
-  font-weight: 500;
-  padding: 0.45rem 1.15rem;
+  font-weight: 550;
+  padding: 0.46rem 1.15rem;
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.22s ease;
+  transition: all 0.18s ease;
   user-select: none;
+  white-space: nowrap;
 }
 
 .features-tab-btn:hover {
@@ -5904,9 +5916,9 @@ button {
 
 .features-tab-btn.active {
   background: #ffffff;
-  color: var(--indigo);
+  color: #0e3835;
   font-weight: 700;
-  box-shadow: 0 3px 10px rgba(48, 43, 99, 0.08);
+  box-shadow: 0 2px 8px rgba(14, 56, 53, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* Features Grid */
@@ -5923,6 +5935,69 @@ button {
 }
 
 @media (max-width: 680px) {
+  .features-showcase-section {
+    padding: 2.75rem 0 3.25rem;
+  }
+
+  .features-showcase-header {
+    margin: 0 auto 1.5rem;
+    padding-inline: 0.5rem;
+  }
+
+  .features-badge {
+    font-size: 0.72rem;
+    padding: 0.28rem 0.75rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .features-showcase-header .section-title {
+    font-size: clamp(1.65rem, 6.2vw, 2.1rem);
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.65rem;
+    max-width: 100%;
+  }
+
+  .features-showcase-header .section-intro {
+    font-size: 0.92rem;
+    line-height: 1.5;
+    max-width: 95%;
+    color: var(--muted);
+  }
+
+  /* Mobile Category Selector: Sleek horizontal swipeable pill bar */
+  .features-tab-strip-wrapper {
+    margin: 1.25rem -1rem 0;
+    padding: 0.35rem 1rem;
+    width: calc(100% + 2rem);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+
+  .features-tab-strip-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .features-tab-strip {
+    margin: 0 auto;
+    padding: 0.25rem;
+    gap: 0.25rem;
+    flex-wrap: nowrap;
+    background: rgba(23, 26, 53, 0.05);
+    border: 1px solid rgba(23, 26, 53, 0.07);
+    border-radius: 999px;
+  }
+
+  .features-tab-btn {
+    font-size: 0.78rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   .features-grid {
     grid-template-columns: minmax(0, 1fr);
   }
