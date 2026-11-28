@@ -51,6 +51,7 @@ export default async function MockAttemptPage({ params }: Props) {
       attemptId={attempt.id}
       title={attempt.mockExam.title}
       examLabel={`${attempt.mockExam.examLevel.exam.name} · ${attempt.mockExam.examLevel.code}`}
+      examCode={attempt.mockExam.examLevel.exam.code}
       durationSeconds={attempt.mockExam.durationMinutes * 60}
       startedAt={attempt.startedAt.toISOString()}
       questions={questions}

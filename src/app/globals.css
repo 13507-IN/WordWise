@@ -2792,12 +2792,46 @@ button {
   font-size: 0.86rem;
 }
 
+.question-context-wrapper {
+  margin-top: 1.25rem;
+  padding: 1rem 1.15rem;
+  border-left: 3px solid #0d9488;
+  border-radius: 0 8px 8px 0;
+  background: rgba(13, 148, 136, 0.05);
+}
+
+.question-context-wrapper .question-context {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1.75;
+}
+
+.question-context-audio {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .question-context {
   margin-top: 1.5rem;
   padding: 1rem 1.1rem;
   border-left: 3px solid var(--cyan);
   background: #f5fbfc;
   line-height: 1.75;
+}
+
+.practice-prompt-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.25rem 0 1rem;
+}
+
+.practice-prompt-wrapper .practice-prompt {
+  margin: 0;
+  flex: 1;
 }
 
 .practice-prompt {
@@ -2867,8 +2901,116 @@ button {
   border-radius: 8px;
 }
 
+.answer-feedback-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.answer-feedback-head strong {
+  margin: 0;
+}
+
 .answer-feedback p {
   margin: 0.25rem 0 0;
+}
+
+/* Audio Pronunciation Buttons */
+.audio-pronounce-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 140ms ease;
+  user-select: none;
+  flex: none;
+}
+
+.audio-pronounce-btn:hover {
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.08);
+  border-color: rgba(13, 148, 136, 0.2);
+}
+
+.audio-pronounce-btn.is-playing {
+  color: #0d9488;
+  background: rgba(13, 148, 136, 0.12);
+  border-color: rgba(13, 148, 136, 0.35);
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+}
+
+.audio-pronounce-btn.audio-subtle {
+  padding: 0.22rem 0.45rem;
+}
+
+.audio-pronounce-btn.audio-pill {
+  padding: 0.28rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  background: rgba(13, 148, 136, 0.06);
+  color: #0e3835;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.audio-pronounce-btn.audio-pill:hover {
+  background: rgba(13, 148, 136, 0.14);
+  border-color: #0d9488;
+}
+
+.audio-pronounce-btn.audio-pill.is-playing {
+  background: #0e3835;
+  color: #5eead4;
+  border-color: #0e3835;
+}
+
+.audio-pronounce-btn.audio-xs {
+  padding: 0.2rem 0.38rem;
+  font-size: 0.74rem;
+}
+
+.audio-pronounce-btn.audio-sm {
+  padding: 0.28rem 0.55rem;
+  font-size: 0.8rem;
+}
+
+.audio-pronounce-btn.audio-md {
+  padding: 0.38rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.audio-btn-label {
+  font-size: inherit;
+  font-weight: 600;
+}
+
+.audio-wave-anim {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+
+.audio-wave-anim .bar {
+  display: block;
+  width: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  animation: soundBarPulse 0.8s ease-in-out infinite alternate;
+}
+
+.audio-wave-anim .bar-1 { height: 5px; animation-delay: 0.1s; }
+.audio-wave-anim .bar-2 { height: 12px; animation-delay: 0.3s; }
+.audio-wave-anim .bar-3 { height: 8px; animation-delay: 0.2s; }
+
+@keyframes soundBarPulse {
+  0% { height: 3px; }
+  100% { height: 12px; }
 }
 
 .answer-feedback.is-correct {
@@ -3418,28 +3560,252 @@ button {
   white-space: pre-wrap;
 }
 
-.tutor-compose {
-  display: flex;
-  align-items: end;
-  gap: 0.6rem;
-  margin: 0 1rem;
-  padding: 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+.tutor-subhead {
+  display: block;
+  font-size: 0.76rem;
+  color: #0d9488 !important;
+  font-weight: 550;
+  margin-top: 0.1rem;
 }
 
-.tutor-compose textarea {
+.tutor-msg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+
+.tutor-quick-prompts {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+}
+
+.quick-prompts-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.quick-prompt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+  max-width: 620px;
+}
+
+.quick-prompt-btn {
+  padding: 0.38rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 550;
+  cursor: pointer;
+  transition: all 140ms ease;
+}
+
+.quick-prompt-btn:hover {
+  border-color: #0d9488;
+  background: rgba(13, 148, 136, 0.06);
+  color: #0e3835;
+}
+
+.tutor-listening-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 1rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+  border-radius: 8px;
+  background: #fff5f5;
+  animation: listeningPulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes listeningPulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.15); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.1); }
+}
+
+.listening-pulse-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #dc2626;
+  flex: none;
+  animation: pulseRedDot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseRedDot {
+  0%, 100% { transform: scale(0.9); opacity: 0.8; }
+  50% { transform: scale(1.25); opacity: 1; }
+}
+
+.listening-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.listening-info strong {
+  font-size: 0.82rem;
+  color: #991b1b;
+}
+
+.listening-info span {
+  font-size: 0.78rem;
+  color: #b91c1c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.listening-stop-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.32rem 0.65rem;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background: #dc2626;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  flex: none;
+}
+
+.tutor-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: white;
+}
+
+.tutor-compose-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tutor-lang-toggle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.lang-toggle-label {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lang-chip {
+  padding: 0.22rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.lang-chip:hover {
+  border-color: #0d9488;
+  color: var(--ink);
+}
+
+.lang-chip.active {
+  background: #0e3835;
+  border-color: #0e3835;
+  color: white;
+}
+
+.tutor-input-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.tutor-input-box textarea {
   min-height: 44px;
   max-height: 140px;
   flex: 1;
   resize: vertical;
-  padding: 0.45rem;
-  border: 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.92rem;
+  line-height: 1.45;
   outline: 0;
 }
 
-.tutor-compose textarea:focus-visible {
-  outline: 0;
+.tutor-input-box textarea:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+}
+
+.tutor-input-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex: none;
+}
+
+.tutor-mic-btn {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #f8fafc;
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  transition: all 140ms ease;
+}
+
+.tutor-mic-btn:hover {
+  border-color: #0d9488;
+  background: rgba(13, 148, 136, 0.06);
+  color: #0e3835;
+}
+
+.tutor-mic-btn.is-recording {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: white;
+  animation: micPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35); }
+  50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0.12); }
 }
 
 .tutor-compose .button {

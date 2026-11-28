@@ -2,6 +2,7 @@
 
 import { Check, ChevronLeft, ChevronRight, CircleHelp, RotateCcw, X } from "lucide-react";
 import { useRef, useState } from "react";
+import { AudioSpeakerButton } from "@/components/audio-speaker-button";
 
 export type PracticeQuestionData = {
   id: string;
@@ -13,9 +14,16 @@ export type PracticeQuestionData = {
 
 type Feedback = { isCorrect: boolean; explanation: string; correctAnswer: { id: string; label: string } | null };
 
-export function PracticeSession({ questions, skillLabels }: {
+export function PracticeSession({
+  questions,
+  skillLabels,
+  examCode,
+  examName,
+}: {
   questions: PracticeQuestionData[];
   skillLabels: Record<string, string>;
+  examCode?: string;
+  examName?: string;
 }) {
   const [index, setIndex] = useState(0);
   const [selectedId, setSelectedId] = useState("");
@@ -73,8 +81,32 @@ export function PracticeSession({ questions, skillLabels }: {
         <span className="skill-pill">{skillLabels[question.skill] ?? question.skill}</span>
         <span className="practice-counter">Question {index + 1} of {questions.length}</span>
       </div>
-      {question.context && <div className="question-context">{question.context}</div>}
-      <h2 className="practice-prompt">{question.prompt}</h2>
+      {question.context && (
+        <div className="question-context-wrapper">
+          <div className="question-context">{question.context}</div>
+          <div className="question-context-audio">
+            <AudioSpeakerButton
+              text={question.context}
+              lang={examCode}
+              variant="pill"
+              size="xs"
+              label="Listen to context"
+              title="Listen to full passage pronunciation"
+            />
+          </div>
+        </div>
+      )}
+      <div className="practice-prompt-wrapper">
+        <h2 className="practice-prompt">{question.prompt}</h2>
+        <AudioSpeakerButton
+          text={question.prompt}
+          lang={examCode}
+          variant="pill"
+          size="sm"
+          label="Listen"
+          title="Listen to native pronunciation"
+        />
+      </div>
       <div className="practice-options">
         {question.options.map((option) => {
           const isSelected = selectedId === option.id;
@@ -92,7 +124,14 @@ export function PracticeSession({ questions, skillLabels }: {
               }}
             >
               <span className="option-label">{option.label}</span>
-              <span>{option.text}</span>
+              <span className="option-text">{option.text}</span>
+              <AudioSpeakerButton
+                text={option.text}
+                lang={examCode}
+                variant="subtle"
+                size="xs"
+                title={`Hear "${option.text}" pronounced`}
+              />
               {isCorrect && <Check aria-label="Correct answer" size={18} />}
               {isWrongSelection && <X aria-label="Your answer" size={18} />}
             </button>
@@ -101,7 +140,19 @@ export function PracticeSession({ questions, skillLabels }: {
       </div>
       {feedback && (
         <div className={`answer-feedback${feedback.isCorrect ? " is-correct" : " is-incorrect"}`} role="status">
-          <strong>{feedback.isCorrect ? "Correct" : "Review this one"}</strong>
+          <div className="answer-feedback-head">
+            <strong>{feedback.isCorrect ? "Correct" : "Review this one"}</strong>
+            {feedback.explanation && (
+              <AudioSpeakerButton
+                text={feedback.explanation}
+                lang={examCode}
+                variant="subtle"
+                size="xs"
+                label="Listen"
+                title="Listen to explanation"
+              />
+            )}
+          </div>
           <p>{feedback.explanation}</p>
         </div>
       )}

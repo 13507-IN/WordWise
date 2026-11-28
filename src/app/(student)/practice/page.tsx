@@ -83,7 +83,12 @@ export default async function PracticePage({ searchParams }: Props) {
         ))}
       </div>
 
-      <PracticeSession questions={data} skillLabels={skillLabels} />
+      <PracticeSession
+        questions={data}
+        skillLabels={skillLabels}
+        examCode={profile.targetLevel.exam.code}
+        examName={profile.targetLevel.exam.name}
+      />
     </div>
   );
 }

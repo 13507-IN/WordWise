@@ -22,6 +22,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { AudioSpeakerButton } from "@/components/audio-speaker-button";
 
 const SKILL_TYPES = [
   "VOCABULARY",
@@ -1199,33 +1200,63 @@ export function QuestionManager({
               {typeof previewQuestion.prompt === "object" &&
                 previewQuestion.prompt !== null &&
                 "context" in previewQuestion.prompt && (
-                  <blockquote
-                    style={{
-                      margin: "0 0 1rem",
-                      padding: "0.85rem 1rem",
-                      borderRadius: "8px",
-                      background: "var(--paper)",
-                      borderLeft: "4px solid var(--indigo)",
-                      fontSize: "0.92rem",
-                      lineHeight: 1.5,
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {String(previewQuestion.prompt.context)}
-                  </blockquote>
+                  <div style={{ marginBottom: "1rem" }}>
+                    <blockquote
+                      style={{
+                        margin: "0 0 0.45rem",
+                        padding: "0.85rem 1rem",
+                        borderRadius: "8px",
+                        background: "var(--paper)",
+                        borderLeft: "4px solid var(--indigo)",
+                        fontSize: "0.92rem",
+                        lineHeight: 1.5,
+                        color: "var(--ink)",
+                      }}
+                    >
+                      {String(previewQuestion.prompt.context)}
+                    </blockquote>
+                    <AudioSpeakerButton
+                      text={String(previewQuestion.prompt.context)}
+                      lang={previewQuestion.examLevel.exam.code}
+                      size="xs"
+                      variant="subtle"
+                      label="Listen to context"
+                    />
+                  </div>
                 )}
 
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 700, margin: "0 0 1.25rem", lineHeight: 1.4 }}>
-                {typeof previewQuestion.prompt === "object" &&
-                previewQuestion.prompt !== null &&
-                "text" in previewQuestion.prompt
-                  ? String(previewQuestion.prompt.text)
-                  : "Prompt"}
-              </h3>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 700, margin: 0, lineHeight: 1.4 }}>
+                  {typeof previewQuestion.prompt === "object" &&
+                  previewQuestion.prompt !== null &&
+                  "text" in previewQuestion.prompt
+                    ? String(previewQuestion.prompt.text)
+                    : "Prompt"}
+                </h3>
+                <AudioSpeakerButton
+                  text={
+                    typeof previewQuestion.prompt === "object" &&
+                    previewQuestion.prompt !== null &&
+                    "text" in previewQuestion.prompt
+                      ? String(previewQuestion.prompt.text)
+                      : ""
+                  }
+                  lang={previewQuestion.examLevel.exam.code}
+                  size="sm"
+                  variant="pill"
+                  label="Listen"
+                />
+              </div>
 
               <div style={{ display: "grid", gap: "0.65rem", marginBottom: "1.25rem" }}>
                 {previewQuestion.options.map((opt, idx) => {
                   const isSelected = previewSelectedOption === idx;
+                  const optText =
+                    typeof opt.content === "object" &&
+                    opt.content !== null &&
+                    "text" in opt.content
+                      ? String(opt.content.text)
+                      : "";
                   let styleBorder = "1px solid var(--line)";
                   let styleBg = "white";
                   let styleColor = "var(--ink)";
@@ -1282,12 +1313,15 @@ export function QuestionManager({
                         {opt.label}
                       </span>
                       <span style={{ flex: 1, fontSize: "0.95rem" }}>
-                        {typeof opt.content === "object" &&
-                        opt.content !== null &&
-                        "text" in opt.content
-                          ? String(opt.content.text)
-                          : ""}
+                        {optText}
                       </span>
+                      <AudioSpeakerButton
+                        text={optText}
+                        lang={previewQuestion.examLevel.exam.code}
+                        size="xs"
+                        variant="subtle"
+                        title={`Pronounce "${optText}"`}
+                      />
                       {previewSubmitted && opt.isCorrect && (
                         <CheckCircle2 size={18} color="#16a34a" />
                       )}

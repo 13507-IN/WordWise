@@ -23,7 +23,11 @@ export default async function TutorPage() {
           <p className="page-intro">Ask for explanations or original practice tailored to your target exam. AI guidance is not official exam advice.</p>
         </div>
       </div>
-      <TutorChat examName={profile.targetLevel.exam.name} level={profile.targetLevel.code} />
+      <TutorChat
+        examName={profile.targetLevel.exam.name}
+        examCode={profile.targetLevel.exam.code}
+        level={profile.targetLevel.code}
+      />
     </div>
   );
 }

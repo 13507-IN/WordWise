@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ChevronLeft, ChevronRight, Flag, Send } from "lucide-react";
+import { AudioSpeakerButton } from "@/components/audio-speaker-button";
 
 export type MockQuestionData = {
   id: string;
@@ -19,10 +20,20 @@ function formatTime(seconds: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-export function MockExamRunner({ attemptId, title, examLabel, durationSeconds, startedAt, questions, initialAnswers }: {
+export function MockExamRunner({
+  attemptId,
+  title,
+  examLabel,
+  examCode,
+  durationSeconds,
+  startedAt,
+  questions,
+  initialAnswers,
+}: {
   attemptId: string;
   title: string;
   examLabel: string;
+  examCode?: string;
   durationSeconds: number;
   startedAt: string;
   questions: MockQuestionData[];
@@ -126,8 +137,32 @@ export function MockExamRunner({ attemptId, title, examLabel, durationSeconds, s
             <span className="skill-pill">{question.skill.toLowerCase()}</span>
             <span className="practice-counter">Question {index + 1} of {questions.length}</span>
           </div>
-          {question.context && <div className="question-context">{question.context}</div>}
-          <h2 className="practice-prompt">{question.prompt}</h2>
+          {question.context && (
+            <div className="question-context-wrapper">
+              <div className="question-context">{question.context}</div>
+              <div className="question-context-audio">
+                <AudioSpeakerButton
+                  text={question.context}
+                  lang={examCode}
+                  variant="pill"
+                  size="xs"
+                  label="Listen to passage"
+                  title="Listen to full passage pronunciation"
+                />
+              </div>
+            </div>
+          )}
+          <div className="practice-prompt-wrapper">
+            <h2 className="practice-prompt">{question.prompt}</h2>
+            <AudioSpeakerButton
+              text={question.prompt}
+              lang={examCode}
+              variant="pill"
+              size="sm"
+              label="Listen"
+              title="Listen to native pronunciation"
+            />
+          </div>
           <div className="practice-options">
             {question.options.map((option) => (
               <button
@@ -137,7 +172,15 @@ export function MockExamRunner({ attemptId, title, examLabel, durationSeconds, s
                 disabled={saving || submitting || secondsLeft === 0}
                 onClick={() => void saveAnswer(question.id, { ...answer, selectedOptionId: option.id })}
               >
-                <span className="option-label">{option.label}</span><span>{option.text}</span>
+                <span className="option-label">{option.label}</span>
+                <span className="option-text">{option.text}</span>
+                <AudioSpeakerButton
+                  text={option.text}
+                  lang={examCode}
+                  variant="subtle"
+                  size="xs"
+                  title={`Hear "${option.text}" pronounced`}
+                />
               </button>
             ))}
           </div>
